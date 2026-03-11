@@ -6,7 +6,7 @@ import numpy as np
 app = FastAPI()
 
 # Load trained model
-model = pickle.load(open("../model/model.pkl", "rb"))
+model = pickle.load(open("model/model.pkl", "rb"))
 
 # Define input structure
 class InsuranceData(BaseModel):
