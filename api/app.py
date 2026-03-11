@@ -22,7 +22,12 @@ class InsuranceData(BaseModel):
 
 @app.get("/")
 def home():
-    return {"message": "Insurance prediction API"}
+    return {
+        "project": "Medical Insurance Cost Prediction",
+        "description": "Predict insurance premium and analyze fairness",
+        "docs": "/docs",
+        "github": "https://github.com/abishekamgoth/insurance-fairness-ml"
+    }
 
 
 @app.post("/predict")
