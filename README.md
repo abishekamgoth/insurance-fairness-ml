@@ -21,4 +21,7 @@ mlflow ui
 open:
 http://127.0.0.1:5000
 # Website for Prediction API with Fainess flags
+- This below link is for to check and predict cost of insurances
 https://insurance-fairness-ml-1.onrender.com/docs
+- Here, below link is for to check API runs
+-https://insurance-fairness-ml-1.onrender.com 
