@@ -20,3 +20,5 @@ http://127.0.0.1:8000/docs
 mlflow ui
 open:
 http://127.0.0.1:5000
+# Website for Prediction API with Fainess flags
+https://insurance-fairness-ml-1.onrender.com/docs
