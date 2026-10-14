@@ -1,0 +1,53 @@
+{
+  "id": "FEAT-002",
+  "type": "feat",
+  "description": "Build the React/Vite frontend dashboard at frontend/. No frontend exists yet. Creates 5 pages (Dashboard, Predict, Evaluation, Explainability, Fairness), shared components, API client, and environment config. All data comes from the FastAPI backend — no hardcoded values. Depends on FEAT-001 being complete (endpoints must exist). Independent of FEAT-003 and FEAT-004.",
+  "status": "completed",
+  "steps": [
+    "Step 1 — Scaffold Vite React project. From project root run: npm create vite@latest frontend -- --template react. Then cd into frontend and run: npm install recharts axios react-router-dom. Create frontend/.env with single line: VITE_API_BASE_URL=http://localhost:8000. Delete the boilerplate src/assets/react.svg and src/App.css if they exist — they will be replaced.",
+
+    "Step 2 — Create frontend/src/api/client.js. Export a default axios instance created with baseURL: import.meta.env.VITE_API_BASE_URL. Also export named async functions: getHealth(), getOverview(), getGroups(), getMetrics(), postPredict(inputObj), postExplain(inputObj). Each function calls the corresponding endpoint and returns response.data. Wrap each in try/catch and re-throw with a friendly message.",
+
+    "Step 3 — Create frontend/src/index.css. Define CSS custom properties: --navy:#1a2b4a, --teal:#0d9488, --light-teal:#ccfbf1, --white:#ffffff, --gray-50:#f8fafc, --gray-100:#f1f5f9, --gray-600:#475569, --gray-900:#0f172a. Base styles: box-sizing border-box, font-family Inter sans-serif (with system fallback), background var(--gray-50), margin 0. Card class: background white, border-radius 12px, box-shadow 0 1px 3px rgba(0,0,0,0.1), padding 1.5rem. Responsive container: max-width 1200px, margin 0 auto, padding 0 1rem.",
+
+    "Step 4 — Create frontend/src/components/Navbar.jsx. Fixed top navigation bar with background var(--navy), white text. Logo: 'MedInsure Analytics' in teal. Nav links using react-router-dom NavLink: Dashboard (/), Predict (/predict), Evaluation (/evaluation), Explainability (/explain), Fairness (/fairness). Active link highlighted with bottom border in teal. Mobile responsive: hamburger menu or horizontal scroll. Height 64px.",
+
+    "Step 5 — Create frontend/src/components/StatCard.jsx. Props: label (string), value (string|number), subtitle (optional string), icon (optional emoji/string). Renders a white card with label in gray-600 small caps, value in large bold navy text, optional subtitle in smaller gray text. Clean minimal design.",
+
+    "Step 6 — Create frontend/src/components/LoadingSpinner.jsx. Centered div with an animated spinning circle (CSS animation, teal border, no external dependency). Shows 'Loading...' text below spinner. Accepts optional message prop.",
+
+    "Step 7 — Create frontend/src/components/ErrorMessage.jsx. Props: message (string), onRetry (optional function). Renders a red-bordered card with error icon, message text, and 'Retry' button if onRetry is provided. Button style: teal background, white text.",
+
+    "Step 8 — Create frontend/src/App.jsx. Import BrowserRouter, Routes, Route from react-router-dom. Import Navbar and all 5 page components. Render: <BrowserRouter><Navbar /><main style={{paddingTop:'64px'}}><Routes><Route path='/' element={<Dashboard/>}/><Route path='/predict' element={<Predict/>}/><Route path='/evaluation' element={<Evaluation/>}/><Route path='/explain' element={<Explainability/>}/><Route path='/fairness' element={<Fairness/>}/></Routes></main></BrowserRouter>.",
+
+    "Step 9 — Update frontend/src/main.jsx. Import React, ReactDOM, App, and ./index.css. Render <App/> into document.getElementById('root').",
+
+    "Step 10 — Create frontend/src/pages/Dashboard.jsx. State: overviewData (null), groupsData (null), loading (true), error (null). On mount: call getOverview() and getGroups() in parallel (Promise.all). Show LoadingSpinner while loading. Show ErrorMessage with retry on error. When loaded: (a) StatCard row: Total Records (overviewData.total_records), Avg Charges (USD formatted), Median Charges (USD formatted), Avg Age (rounded 1dp), Avg BMI (rounded 1dp). (b) Five BarCharts using Recharts: charges_by_smoker (groupsData.smoker), charges_by_age_group (groupsData.age_group), charges_by_bmi_category (groupsData.bmi_category), charges_by_region (groupsData.region), charges_by_sex (groupsData.sex). Each chart has a descriptive title, XAxis, YAxis with '$' prefix, Tooltip with USD formatter, Bar fill teal. (c) Add a note below charts: 'Charts show average historical charges from 1,338 insurance records in the dataset. Values are actual recorded charges, not model predictions.' (d) Optional filter: a single smoker status dropdown that filters the bmi/age/region charts client-side from overviewData arrays — only add this if it does not complicate the implementation significantly.",
+
+    "Step 11 — Create frontend/src/pages/Predict.jsx. State: form fields object (age:'',sex:'male',bmi:'',children:0,smoker:'no',region:'northeast'), fieldErrors object, result (null), loading (false), apiError (null). Form UI: each field labeled clearly with helper text. Validation before submit: age must be 18-120, bmi must be 10.0-60.0. On submit: clear previous result and error, set loading=true, call postPredict(formData), set result=response, set loading=false. On error: set apiError, loading=false. Result card: show 'Estimated Insurance Cost' header, predicted_cost formatted as USD using Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2}), a table of the inputs used, and a 'Make Another Prediction' button that resets result. Never show a predicted cost if apiError is set — show ErrorMessage instead.",
+
+    "Step 12 — Create frontend/src/pages/Evaluation.jsx. State: metrics (null), loading (true), error (null). On mount: call getMetrics(). Show StatCards: MAE (formatted as '$X,XXX'), R² Score (formatted as percentage or 4dp decimal), Test Set Size (N records), Train Set Size (N records). Below cards: explanation text 'The model is evaluated on a held-out 20% test set (268 records) using random_state=42. Metrics are computed using the saved RandomForestRegressor trained with scikit-learn 1.6.1.' Add a bar chart comparing MAE visually if useful, or just the stat cards.",
+
+    "Step 13 — Create frontend/src/pages/Explainability.jsx. Same form as Predict (reuse form state/JSX or extract a shared component InsuranceForm.jsx at src/components/InsuranceForm.jsx). On submit: call postExplain(formData). Result: a horizontal Recharts BarChart with layout='vertical' where each bar is one feature, bar length = shap_value, positive=teal, negative=red/orange using Cell component from recharts. Y-axis shows feature names. X-axis is labeled 'SHAP Value (impact on predicted cost in USD)'. Above chart show: 'Base Value (average prediction): $X,XXX'. Add explanatory text: 'Features with positive SHAP values increase the predicted cost; negative values decrease it. Smoker status and age typically have the largest impact.'",
+
+    "Step 14 — Create frontend/src/pages/Fairness.jsx. On mount: call getOverview(). Extract charges_by_sex and charges_by_smoker from response. Show two BarCharts: 'Average Charges by Gender' and 'Average Charges by Smoker Status'. Below each chart add a brief plain-English interpretation. Top of page: disclaimer 'This analysis is based on historical charges from the 1,338-record insurance dataset. It shows patterns in actual recorded charges, not model predictions or prescriptions.'"
+  ],
+  "acceptance_criteria": [
+    "npm run build in frontend/ exits with code 0 and no errors",
+    "npm run dev starts at http://localhost:5173",
+    "Dashboard page renders 5 StatCards and 5 BarCharts when backend is running",
+    "Predict page form validates: age -1 shows error, age 200 shows error, all valid inputs submit to /predict",
+    "Predict page shows USD-formatted result from backend; shows ErrorMessage (not a fabricated cost) if backend is down",
+    "Evaluation page shows MAE and R2 from /model/metrics",
+    "Explainability page shows 8-feature SHAP bar chart",
+    "Fairness page shows charges-by-sex and charges-by-smoker charts",
+    "All pages use import.meta.env.VITE_API_BASE_URL — no hardcoded localhost:8000 strings outside client.js"
+  ],
+  "verification": [
+    "cd frontend && npm run build (must exit 0)",
+    "cd frontend && npm run dev (start dev server, verify it opens at http://localhost:5173)",
+    "With backend running on :8000: open http://localhost:5173 and verify Dashboard loads data from API"
+  ],
+  "blocked_reason": null,
+  "findings": "Extracted InsuranceForm as shared component (src/components/InsuranceForm.jsx) used by both Predict.jsx and Explainability.jsx to avoid JSX duplication. Vite scaffold from 'npm create vite@latest' produced a vanilla-TS template instead of React (interactive prompt issue on Windows); fixed by manually writing package.json with React 18 + @vitejs/plugin-react dependencies and removing the TypeScript config files. npm install produced ENOTEMPTY error on first run due to partial extraction; fixed by removing node_modules and reinstalling clean. Build exits 0 with only a chunk-size advisory warning (623 kB JS, expected for recharts + axios)."
+}

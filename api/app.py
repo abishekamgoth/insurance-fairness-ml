@@ -319,8 +319,13 @@ def explain(data: InsuranceInput):
         # Sort by |shap_value| descending
         features.sort(key=lambda x: abs(x["shap_value"]), reverse=True)
 
+        # expected_value may be an ndarray (one value for regressors); extract scalar
+        base_val = explainer.expected_value
+        if hasattr(base_val, "__len__"):
+            base_val = base_val[0]
+
         return {
-            "base_value": float(explainer.expected_value),
+            "base_value": float(base_val),
             "features": features,
         }
     except Exception as e:

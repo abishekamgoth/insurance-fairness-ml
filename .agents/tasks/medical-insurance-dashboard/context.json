@@ -1,0 +1,50 @@
+{
+  "project_type": "ML project: Python FastAPI backend + React/Vite frontend (frontend to be created)",
+  "language": "Python (backend), JavaScript/React (frontend)",
+  "build_system": "Python: pip + requirements.txt (no build step); Frontend: Vite (npm run build); Docker: Dockerfile at project root",
+  "test_framework": "pytest 8.3.4 with httpx 0.27.2 and FastAPI TestClient; no frontend tests required",
+  "build_command": "Backend: none (interpreted). Frontend: cd frontend && npm run build",
+  "test_command": "python -m pytest tests/test_api.py -v (run from project root c:\\Users\\amgot\\a_Project\\Ds\\College Projects)",
+  "verification_instructions": "1) Start API: uvicorn api.app:app --reload --port 8000 (from project root). 2) Run tests: python -m pytest tests/test_api.py -v. 3) Start frontend: cd frontend && npm run dev (opens http://localhost:5173). 4) Frontend build check: cd frontend && npm run build.",
+  "snapshot_or_generated_files": null,
+  "environment_constraints": "Windows/PowerShell: use semicolon (;) not && for command chaining. Python 3.13 locally, Python 3.10 in Docker (Dockerfile FROM python:3.10). Project root has spaces: 'c:\\Users\\amgot\\a_Project\\Ds\\College Projects' — always quote paths. uvicorn command: uvicorn api.app:app (module path, not file path).",
+  "contribution_requirements": "Do NOT retrain the model. Preserve: notebook/insurance_fairness_analysis.ipynb, notebook/insurance.csv, model/model.pkl, .git/. Delete: api/main.py. No hardcoded analytics values. No fake predictions if backend unavailable.",
+  "key_patterns": "Backend: FastAPI with Pydantic v2 (pydantic 2.10.3). Use Field(ge=...,le=...) for validators. Use pathlib.Path(__file__).resolve() for robust paths. Frontend: React + Vite; all API calls use import.meta.env.VITE_API_BASE_URL from frontend/.env. USD formatting: Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}). Charts: Recharts BarChart. Routing: react-router-dom v6 BrowserRouter + Routes.",
+  "relevant_files": [
+    "api/app.py — MODIFY (main entry point, fix and extend)",
+    "api/main.py — DELETE (orphaned, never used)",
+    "model/model.pkl — READ-ONLY (RandomForestRegressor, 8 features, do not replace)",
+    "notebook/insurance.csv — READ-ONLY (1338 records, 7 cols: age,sex,bmi,children,smoker,region,charges)",
+    "notebook/insurance_fairness_analysis.ipynb — FIX cell 29 y_pred bug only",
+    "requirements.txt — UPDATE with pinned versions",
+    "Dockerfile — VERIFY (no changes needed after app.py path fix)",
+    "README.md — REWRITE"
+  ],
+  "directory_structure": "project root: api/ (app.py=real entry, main.py=delete), model/ (model.pkl=RF model), notebook/ (insurance.csv, ipynb, model/model.pkl=second copy), Dockerfile, requirements.txt, README.md. Create: frontend/ (Vite React app), tests/ (pytest suite), .agents/tasks/ (artifacts).",
+  "model_facts": {
+    "file": "model/model.pkl",
+    "type": "RandomForestRegressor",
+    "n_estimators": 100,
+    "n_features_in_": 8,
+    "feature_names_in_": ["age", "bmi", "children", "sex_male", "smoker_yes", "region_northwest", "region_southeast", "region_southwest"],
+    "encoding_notes": "pd.get_dummies(drop_first=True) on insurance.csv. sex: female=reference (sex_male=1 if male). smoker: no=reference (smoker_yes=1 if yes). region: northeast=reference (region_northwest, region_southeast, region_southwest are dummies).",
+    "sklearn_version_at_train": "1.6.1",
+    "sklearn_version_now": "1.8.0",
+    "version_warning": "InconsistentVersionWarning at load — expected, model still works",
+    "mae_approx": 2627.91,
+    "r2_approx": 0.8582
+  },
+  "dataset_facts": {
+    "records": 1338,
+    "columns": ["age", "sex", "bmi", "children", "smoker", "region", "charges"],
+    "age_range": "18-64",
+    "bmi_range": "15.96-53.13",
+    "children_range": "0-5",
+    "charges_range_usd": "1121.87-63770.43",
+    "avg_charges_usd": 13270.42,
+    "median_charges_usd": 9382.03,
+    "smoker_values": ["yes", "no"],
+    "region_values": ["northeast", "northwest", "southeast", "southwest"],
+    "sex_values": ["male", "female"]
+  }
+}

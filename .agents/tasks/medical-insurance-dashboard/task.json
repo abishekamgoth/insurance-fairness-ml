@@ -1,0 +1,7 @@
+{
+  "task_id": "task-medical-insurance-dashboard",
+  "task_description": "Enhance existing Medical Insurance Cost Prediction ML project into a full-stack application: fix the FastAPI backend (broken paths, no validation, orphaned files), build a React/Vite dashboard with 5 pages (Overview, Predict, Evaluation, Explainability, Fairness), add pytest test suite, and rewrite the README. Uses existing model/model.pkl (RandomForestRegressor) without retraining.",
+  "status": "pending",
+  "feature_order": ["FEAT-001", "FEAT-002", "FEAT-003", "FEAT-004"],
+  "blocked_reason": null
+}
