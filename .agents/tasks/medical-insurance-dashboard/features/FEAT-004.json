@@ -1,0 +1,22 @@
+{
+  "id": "FEAT-004",
+  "type": "docs",
+  "description": "Rewrite README.md with accurate project documentation covering architecture, setup, API reference, dataset, and model details. Independent of all other FEATs — can be written any time after exploration. Should be written last so it reflects actual implemented state.",
+  "status": "pending",
+  "steps": [
+    "Step 1 — Rewrite README.md at the project root. Content sections: (1) Project title and one-paragraph description. (2) Features list: RF model prediction, 5-page React dashboard, SHAP explainability, fairness analysis, pytest test suite, Docker support. (3) Architecture section: diagram in text showing browser -> React frontend (Vite :5173) -> FastAPI backend (:8000) -> model.pkl + insurance.csv. (4) Prerequisites: Python 3.10+, Node.js 18+, pip. (5) Local setup — Backend: git clone, pip install -r requirements.txt, uvicorn api.app:app --reload --port 8000. Frontend: cd frontend, npm install, npm run dev. (6) Docker: docker build -t insurance-api . then docker run -p 8000:8000 insurance-api. (7) API endpoint reference table with columns: Method, Path, Description, Example. Cover all 7 endpoints: GET /, GET /health, POST /predict, GET /analytics/overview, GET /analytics/groups, GET /model/metrics, POST /explain. Include one example request body for POST /predict: {age:35,bmi:28.5,children:1,sex:'male',smoker:'no',region:'northeast'}. Include example response: {predicted_cost:9823.45,currency:'USD',inputs:{...}}. (8) Dataset section: 1,338 records from kaggle insurance dataset, 7 columns (age,sex,bmi,children,smoker,region,charges), charges in USD, age 18-64. (9) Model section: RandomForestRegressor, 100 estimators, scikit-learn 1.6.1, 8 encoded features (list them), MAE ~$2,628, R² ~0.858 on 20% test split. Note: model is pre-trained; to retrain run notebook/insurance_fairness_analysis.ipynb. (10) Project structure tree showing key directories and files. (11) License or academic use note if appropriate."
+  ],
+  "acceptance_criteria": [
+    "README.md contains setup commands for both backend and frontend",
+    "README.md documents all 7 API endpoints",
+    "README.md does not contain incorrect metrics or fabricated numbers (uses verified MAE ~2627, R2 ~0.858)",
+    "README.md does not claim aif360 fairness mitigation is implemented in the API (it is notebook-only)"
+  ],
+  "verification": [
+    "Read README.md and confirm uvicorn and npm commands are present",
+    "Confirm all 7 endpoints (/, /health, /predict, /analytics/overview, /analytics/groups, /model/metrics, /explain) are documented"
+  ],
+  "blocked_reason": null,
+  "findings": "README.md rewritten with full architecture diagram, local and Docker setup, all 7 API endpoints documented with request/response examples, dataset facts (1,338 records, USD charges), model facts (RandomForestRegressor, 100 estimators, MAE ~$2,628, R2 ~0.858, 8 features), project structure tree, and academic use note. aif360 correctly noted as notebook-only dependency.",
+  "status": "completed"
+}
