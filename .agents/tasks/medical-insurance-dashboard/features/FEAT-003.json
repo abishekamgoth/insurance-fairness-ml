@@ -1,0 +1,24 @@
+{
+  "id": "FEAT-003",
+  "type": "test",
+  "description": "Create the pytest test suite for the FastAPI backend. Uses FastAPI TestClient (synchronous, no running server needed). Depends on FEAT-001 being complete. Independent of FEAT-002 and FEAT-004.",
+  "status": "completed",
+  "steps": [
+    "Step 1 — Create tests/__init__.py as an empty file so pytest discovers the package.",
+
+    "Step 2 — Create tests/conftest.py. Import TestClient from fastapi.testclient and app from api.app. Define a pytest fixture named 'client' with scope='module' that yields TestClient(app). This avoids reimporting the app per test.",
+
+    "Step 3 — Create tests/test_api.py. Import pytest and any needed types. Use the 'client' fixture from conftest.py. Write these test functions: (a) test_model_loads: call client.get('/health'), assert response.status_code==200, assert response.json()['model_loaded']==True. (b) test_health_endpoint: call client.get('/health'), assert 200, assert 'status' in json, assert 'model_loaded' in json, assert 'records_loaded' in json, assert json['records_loaded']==1338. (c) test_predict_valid: POST /predict with body {age:35,bmi:28.5,children:1,sex:'male',smoker:'no',region:'northeast'}, assert 200, assert 'predicted_cost' in json, assert json['predicted_cost'] > 0. (d) test_predict_invalid_age_negative: POST /predict with {age:-1,bmi:28.5,children:0,sex:'female',smoker:'no',region:'northeast'}, assert 422. (e) test_predict_invalid_age_too_high: POST /predict with {age:200,bmi:28.5,children:0,sex:'female',smoker:'no',region:'northeast'}, assert 422. (f) test_predict_invalid_bmi: POST /predict with {age:30,bmi:200.0,children:0,sex:'male',smoker:'no',region:'northeast'}, assert 422. (g) test_predict_invalid_smoker: POST /predict with {age:30,bmi:25.0,children:0,sex:'male',smoker:'maybe',region:'northeast'}, assert 422. (h) test_analytics_overview_keys: GET /analytics/overview, assert 200, check all 9 keys present: total_records,avg_charges,median_charges,avg_age,avg_bmi,charges_by_smoker,charges_by_age_group,charges_by_bmi_category,charges_by_region,charges_by_sex. Also assert json['total_records']==1338. (i) test_model_metrics_keys: GET /model/metrics, assert 200, check keys: mae,r2,test_size,train_size. Assert json['mae'] > 0, assert json['r2'] > 0.8. (j) test_explain_valid: POST /explain with {age:35,bmi:28.5,children:1,sex:'male',smoker:'no',region:'northeast'}, assert 200, assert 'base_value' in json, assert 'features' in json, assert len(json['features'])==8."
+  ],
+  "acceptance_criteria": [
+    "python -m pytest tests/test_api.py -v passes all 10 tests",
+    "No test imports a hardcoded prediction value — all assertions are structural (keys present, values > 0)",
+    "Test suite runs in under 30 seconds (no live server, uses TestClient)"
+  ],
+  "verification": [
+    "python -m pytest tests/test_api.py -v (run from project root c:\\Users\\amgot\\a_Project\\Ds\\College Projects)",
+    "python -m pytest tests/test_api.py -v --tb=short (with short traceback for debugging)"
+  ],
+  "blocked_reason": null,
+  "findings": "10/10 tests passed in 1.95s (pytest exit code 0). One DeprecationWarning in test_explain_valid from app.py line 323 (float(explainer.expected_value) on ndarray) — not a test failure, not modified per instructions. asyncio_default_fixture_loop_scope warning is from pytest-asyncio plugin, not related to tests."
+}
