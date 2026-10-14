@@ -1,0 +1,49 @@
+{
+  "id": "FEAT-001",
+  "type": "fix",
+  "description": "Fix and extend the FastAPI backend (api/app.py). The current file has a broken relative model path, accepts only raw encoded integers with no validation, and lacks CORS, health check, analytics, metrics, and SHAP endpoints. api/main.py is an orphaned file referencing non-existent paths and must be deleted. The notebook has a NameError bug in cell 29.",
+  "status": "pending",
+  "steps": [
+    "Step 1 — Delete api/main.py. It references non-existent 'models/' directory and 'columns.pkl'. It is never imported anywhere and was never the intended entry point.",
+
+    "Step 2 — Rewrite api/app.py completely. Read context.json model_facts.feature_names_in_ for the exact feature order — do not guess. Key requirements: (a) Use pathlib.Path(__file__).resolve().parent.parent / 'model' / 'model.pkl' for model path. (b) Use pathlib.Path(__file__).resolve().parent.parent / 'notebook' / 'insurance.csv' for dataset path. (c) Load both at module startup inside a try/except; set model_loaded=False and df=None if either fails — the API must still start. (d) Pydantic v2 InsuranceInput model: age int Field(ge=18,le=120), bmi float Field(ge=10.0,le=60.0), children int Field(ge=0,le=10), sex Literal['male','female'], smoker Literal['yes','no'], region Literal['northeast','northwest','southeast','southwest']. (e) Encoding function: sex_male=1 if sex=='male' else 0; smoker_yes=1 if smoker=='yes' else 0; region_northwest=1 if region=='northwest' else 0; region_southeast=1 if region=='southeast' else 0; region_southwest=1 if region=='southwest' else 0. Build a pandas DataFrame with columns in this EXACT order: [age,bmi,children,sex_male,smoker_yes,region_northwest,region_southeast,region_southwest]. (f) CORS middleware: allow origins ['http://localhost:5173','http://localhost:3000','http://localhost:8000'], methods ['GET','POST'], allow_headers=['*']. (g) All exception handlers return {'detail': str} JSON only — no stack traces. (h) Implement all 7 endpoints as described in plan.md steps 2.",
+
+    "Step 2 endpoints detail — GET /: return {project, description, version:'1.0.0', docs:'/docs', endpoints:[...]}",
+
+    "Step 2 endpoints detail — GET /health: return {status:'ok' if model_loaded else 'degraded', model_loaded:bool, records_loaded:int (0 if df is None else len(df))}",
+
+    "Step 2 endpoints detail — POST /predict: encode InsuranceInput to DataFrame, call model.predict(), return {predicted_cost:float, currency:'USD', inputs:dict of original human-readable inputs}. Return HTTP 503 with {detail:'Model not available'} if not model_loaded.",
+
+    "Step 2 endpoints detail — GET /analytics/overview: compute from df using pandas. Return: {total_records:int, avg_charges:float, median_charges:float, avg_age:float, avg_bmi:float, charges_by_smoker:[{group:str,avg_charges:float}], charges_by_age_group:[{group:str,avg_charges:float}] with bins pd.cut(df['age'],[17,25,35,45,55,64],labels=['18-25','26-35','36-45','46-55','56+']), charges_by_bmi_category:[{category:str,avg_charges:float}] with pd.cut(df['bmi'],[0,18.5,25,30,999],labels=['Underweight','Normal','Overweight','Obese']), charges_by_region:[{region:str,avg_charges:float}], charges_by_sex:[{sex:str,avg_charges:float}]}. Return HTTP 503 if df is None.",
+
+    "Step 2 endpoints detail — GET /analytics/groups: same aggregations but return as {smoker:[{name,value}], age_group:[{name,value}], bmi_category:[{name,value}], region:[{name,value}], sex:[{name,value}]} for Recharts compatibility.",
+
+    "Step 2 endpoints detail — GET /model/metrics: load df, run pd.get_dummies(drop_first=True), split with train_test_split(test_size=0.2,random_state=42), predict with loaded model, return {mae:float, r2:float, test_size:int, train_size:int, model_type:'RandomForestRegressor'}. The MAE should be ~2627.91 and R2 ~0.858. Return HTTP 503 if not model_loaded.",
+
+    "Step 2 endpoints detail — POST /explain: encode InsuranceInput to DataFrame (same encoding as /predict). Create shap.TreeExplainer(model). Call explainer.shap_values(df_row) — returns ndarray shape (1,8). Return {base_value:float(explainer.expected_value), features:[{name:str, value:float, shap_value:float}] sorted by abs(shap_value) descending, 8 items total}. Feature names are model.feature_names_in_. Return HTTP 503 if not model_loaded.",
+
+    "Step 3 — Update requirements.txt. Replace contents with pinned versions: pandas==2.3.1, numpy==2.1.3, scikit-learn==1.8.0, xgboost==3.2.0, fastapi==0.115.6, uvicorn==0.32.1, shap==0.51.0, mlflow==3.10.1, pydantic==2.10.3, python-multipart>=0.0.9, httpx==0.27.2, pytest==8.3.4. Keep aif360 without pin (notebook-only dep). Add pytest-asyncio==0.24.0.",
+
+    "Step 4 — Fix notebook cell 29 (the y_pred NameError). Open notebook/insurance_fairness_analysis.ipynb as JSON. Find the cell whose source contains 'mean_absolute_error(y_test, y_pred)'. Replace y_pred with rf_pred in that cell. Add a new code cell after it for XGBoost evaluation: xgb_mae = mean_absolute_error(y_test, xgb_pred); xgb_r2 = r2_score(y_test, xgb_pred); print(f'RF  -> MAE: {rf_mae:.2f}, R2: {rf_r2:.4f}'); print(f'XGB -> MAE: {xgb_mae:.2f}, R2: {xgb_r2:.4f}'). Also rename variables in the RF cell to rf_mae and rf_r2 for clarity."
+  ],
+  "acceptance_criteria": [
+    "api/main.py does not exist",
+    "uvicorn api.app:app --port 8000 starts without error from project root",
+    "GET /health returns {status:'ok', model_loaded:true, records_loaded:1338}",
+    "POST /predict with {age:35,bmi:28.5,children:1,sex:'male',smoker:'no',region:'northeast'} returns 200 with predicted_cost > 0",
+    "POST /predict with {age:-1,...} returns 422 (validation error)",
+    "POST /predict with {bmi:200,...} returns 422",
+    "GET /analytics/overview returns all 9 required keys",
+    "GET /model/metrics returns mae ~2627 and r2 ~0.858",
+    "POST /explain with valid input returns {base_value:float, features:[8 items]}",
+    "Notebook cell 29 uses rf_pred not y_pred"
+  ],
+  "verification": [
+    "python -m pytest tests/test_api.py -v (run from project root — tests must exist from FEAT-003, but this FEAT must be implemented first)",
+    "Manual check: uvicorn api.app:app --port 8000 starts and GET http://localhost:8000/health returns 200 with model_loaded:true",
+    "python -c \"from api.app import app; print('import OK')\" (from project root)"
+  ],
+  "blocked_reason": null,
+  "findings": "Actual MAE: 2627.91, Actual R2: 0.8582. Test size: 268, Train size: 1070. Model loads correctly with InconsistentVersionWarning (sklearn 1.6.1 vs 1.8.0) but works fine. api/main.py deleted. api/app.py rewritten with pathlib paths, human-readable InsuranceInput, Pydantic v2 validators, correct encoding, CORS, all 7 endpoints. requirements.txt updated with pinned versions. Notebook cell 29 fixed (y_pred -> rf_pred, renamed to rf_mae/rf_r2); XGBoost evaluation cell inserted at index 30. tests/ directory does not exist yet (created in FEAT-003).",
+  "status": "completed"
+}
